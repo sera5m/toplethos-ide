@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Vulcan IDE — file browse, export, line numbers, BASE VM."""
+"""Toplethos IDE — file browse, export, line numbers, BASE VM."""
 from __future__ import annotations
 
 import os
@@ -40,7 +40,7 @@ except Exception:
     serial = None
     list_ports = None
 
-DEFAULT = """print("hello from vulcan");
+DEFAULT = """print("hello from toplethos");
 print(1 + 2 * 3);
 print(sin(90));
 include "examples/basic.vul";
@@ -59,7 +59,7 @@ def ports():
 
 class App(Gtk.Application):
     def __init__(self):
-        super().__init__(application_id="dev.oiria.VulcanIde",
+        super().__init__(application_id="dev.oiria.ToplethosIde",
                          flags=Gio.ApplicationFlags.HANDLES_OPEN)
         self.win = None
         self.editor = None
@@ -78,7 +78,7 @@ class App(Gtk.Application):
         if self.win:
             self.win.present()
             return
-        self.win = Gtk.ApplicationWindow(application=self, title="Vulcan IDE")
+        self.win = Gtk.ApplicationWindow(application=self, title="Toplethos IDE")
         self.win.set_default_size(1100, 720)
         root = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
 
@@ -155,7 +155,7 @@ class App(Gtk.Application):
         self.win.present()
         self._renumber()
         self._refresh_files()
-        self._say("Run: rsvm if on PATH, else vulcan_run (includes, arrays, native, @memory_hard).\n")
+        self._say("Run: rsvm if on PATH, else toplethos_run (includes, arrays, native, @memory_hard).\n")
 
     def _text(self):
         b = self.editor.get_buffer()
@@ -259,7 +259,7 @@ class App(Gtk.Application):
                     return
                 GLib.idle_add(self._say, "[rsvm failed]\n" + out + "\n")
             try:
-                from vulcan_run import run_source, RunError
+                from toplethos_run import run_source, RunError
                 out = run_source(src, self.path)
                 GLib.idle_add(self._say, "[run]\n" + out + "\n")
             except Exception as e:
