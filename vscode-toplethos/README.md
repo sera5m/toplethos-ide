@@ -1,26 +1,27 @@
 # Toplethos VS Code extension
 
-Teaches VS Code that `.vul` is Toplethos: comment highlighting, the `//<<<node>>>` markers, and an outline entry per node.
+`.vul` opens as a normal code file. Highlighting, brackets, indent, and completions. The graph window is separate; this is the text editor.
 
 No build step. No npm install.
 
 ## Install
-
-From this repo:
 
 ```bash
 mkdir -p ~/.vscode/extensions
 ln -sfn "$(pwd)/vscode-toplethos" ~/.vscode/extensions/sera5m.toplethos-0.1.0
 ```
 
-Then in VS Code: Command Palette → `Developer: Reload Window`.
+Command Palette → `Developer: Reload Window`.
 
-The graph IDE does not talk to the extension over a socket. It runs:
+## Completions
 
-```bash
-code -g /path/file.vul:LINE:1
-```
+As you type, suggestions come from:
 
-That flag is built into VS Code. The extension only has to be installed so the opened buffer is highlighted and the Outline lists the nodes.
+- syntax templates: `fn`, `if`, `do n[]`, `struct`, `include`, `native`, `print`, `arr_new`, `sin`
+- names already in this file: functions, `i32`/`f32` bindings, struct names
+- parameters of the function the cursor is inside
+- `@memory_hard`, `@parallel`, `@latex_internal`, `@sig_gen_graph_preview` after `@`
 
-`code` must be on `PATH`. In VS Code: Command Palette → `Shell Command: Install 'code' command in PATH`.
+Ctrl+Space opens the list if it did not. Tab fills a snippet.
+
+The graph IDE still opens a node with `code -g file:line`. That lands in this same editor.
