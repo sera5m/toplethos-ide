@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="text/x-toplethos">
+    <comment>Toplethos source</comment>
+    <sub-class-of type="text/plain"/>
+    <glob pattern="*.tpth_s" weight="80"/>
+    <glob pattern="*.vul" weight="60"/>
+  </mime-type>
+  <mime-type type="application/x-toplethos-aot">
+    <comment>Toplethos AOT image</comment>
+    <sub-class-of type="application/octet-stream"/>
+    <glob pattern="*.tpth_aot" weight="80"/>
+    <glob pattern="*.cvul" weight="60"/>
+  </mime-type>
+  <mime-type type="application/x-toplethos-bytecode">
+    <comment>Toplethos bytecode</comment>
+    <sub-class-of type="application/octet-stream"/>
+    <glob pattern="*.tpth_bc" weight="80"/>
+    <glob pattern="*.bvul" weight="60"/>
+  </mime-type>
+</mime-info>
