@@ -5,8 +5,11 @@
     { "include": "#marker" },
     { "include": "#comment" },
     { "include": "#string" },
-    { "include": "#number" },
-    { "include": "#keyword" }
+    { "include": "#attribute" },
+    { "include": "#function" },
+    { "include": "#keyword" },
+    { "include": "#type" },
+    { "include": "#number" }
   ],
   "repository": {
     "marker": {
@@ -18,16 +21,31 @@
       "name": "comment.line.double-slash.toplethos"
     },
     "string": {
-      "match": "\"(?:\\.|[^\"\\])*\"",
+      "match": "\"(?:\\\\.|[^\"\\\\])*\"",
       "name": "string.quoted.double.toplethos"
+    },
+    "attribute": {
+      "match": "@[A-Za-z_][A-Za-z0-9_]*",
+      "name": "entity.name.tag.toplethos"
+    },
+    "function": {
+      "match": "\\b(fn)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.control.toplethos" },
+        "2": { "name": "entity.name.function.toplethos" }
+      }
+    },
+    "keyword": {
+      "match": "\\b(if|else|do|return|include|import|struct|print|native_seq|native|nseq|py|ccall|arr_new|sin_amp|sin|cos|tan|in|out)\\b",
+      "name": "keyword.control.toplethos"
+    },
+    "type": {
+      "match": "\\b(i32|f32|bool|string|int|float)\\b",
+      "name": "storage.type.toplethos"
     },
     "number": {
       "match": "\\b\\d+(?:\\.\\d+)?\\b",
       "name": "constant.numeric.toplethos"
-    },
-    "keyword": {
-      "match": "\\b(fn|in|out|include|native|print|if|else|return|true|false)\\b",
-      "name": "keyword.control.toplethos"
     }
   }
 }
