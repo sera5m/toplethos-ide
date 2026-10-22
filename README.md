@@ -1,15 +1,18 @@
 # toplethos-ide
 
-Desktop editor + PC interpreter. First run clones [toplethos-lang](https://github.com/sera5m/toplethos-lang).
+Graph window plus VS Code for the text.
 
 ```bash
-sudo pacman -S python-gobject gtk4 python-pyserial python-matplotlib
+sudo pacman -S python-gobject gtk4
+yay -S visual-studio-code-bin
 git clone https://github.com/sera5m/toplethos-ide
 cd toplethos-ide
+ln -sfn "$(pwd)/vscode-toplethos" ~/.vscode/extensions/sera5m.toplethos-0.1.0
 python3 toplethos_ide.py
 ```
 
-- Folder / file list, Open, Save, Export
-- Line numbers; errors print `line N:`
-- Run: `rsvm` if on PATH, else `toplethos_run.py`
-- Language: include, C arrays, `@memory_hard`, `native` / `py`
+Open `examples/graph_demo.vul` in the file list. Click a box. VS Code opens that node (`code -g file:line`). Reload the VS Code window once so `.vul` highlights and the Outline lists nodes.
+
+`code` must be on PATH (Command Palette → `Shell Command: Install 'code' command in PATH`).
+
+Run still executes the file on disk with `rsvm`, else `toplethos_run.py`.
