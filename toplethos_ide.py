@@ -42,7 +42,8 @@ except Exception:
     serial = None
     list_ports = None
 
-VUL_EXTS = {".vul", ".bvul"}
+SOURCE_EXTS = {".tpth_s", ".vul"}
+IMAGE_EXTS = {".tpth_aot", ".tpth_bc", ".cvul", ".bvul"}
 NODE_W = 168
 NODE_H = 76
 
@@ -270,7 +271,7 @@ class App(Gtk.Application):
         if not self.workdir.is_dir():
             return
         for p in sorted(self.workdir.iterdir()):
-            if p.suffix.lower() in VUL_EXTS or p.suffix.lower() in {".md", ".txt"}:
+            if p.suffix.lower() in SOURCE_EXTS or p.suffix.lower() in IMAGE_EXTS or p.suffix.lower() in {".md", ".txt"}:
                 lab = Gtk.Label(label=p.name, xalign=0)
                 lab.path = str(p)
                 self.file_list.append(lab)
@@ -278,7 +279,10 @@ class App(Gtk.Application):
     def _on_file(self, _lb, row):
         child = row.get_child()
         path = getattr(child, "path", None)
-        if path and Path(path).suffix.lower() in VUL_EXTS:
+        if path and Path(path).suffix.lower() in IMAGE_EXTS:
+            self._say("%s is an image, not source\n" % path)
+            return
+        if path and Path(path).suffix.lower() in SOURCE_EXTS:
             self._load_path(path)
 
     def _pick_folder(self, *_):
@@ -295,7 +299,7 @@ class App(Gtk.Application):
 
     def _run(self, *_):
         if not self.path:
-            self._say("open a .vul first\n")
+            self._say("open a .tpth_s first\n")
             return
         src = Path(self.path).read_text(encoding="utf-8")
         if self.target.get_selected() == 1:
@@ -306,7 +310,7 @@ class App(Gtk.Application):
             rsvm = shutil.which("rsvm")
             if rsvm:
                 import tempfile
-                f = tempfile.NamedTemporaryFile("w", suffix=".vul", delete=False)
+                f = tempfile.NamedTemporaryFile("w", suffix=".tpth_s", delete=False)
                 f.write(src)
                 f.close()
                 pr = subprocess.run([rsvm, f.name], capture_output=True, text=True)

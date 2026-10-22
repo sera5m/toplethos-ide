@@ -11,7 +11,7 @@ ln -sfn "$(pwd)/vscode-toplethos" ~/.vscode/extensions/sera5m.toplethos-0.1.0
 python3 toplethos_ide.py
 ```
 
-Open `examples/graph_demo.vul` in the file list. Click a box. VS Code opens that node (`code -g file:line`). Reload the VS Code window once so `.vul` highlights and the Outline lists nodes.
+Open `examples/graph_demo.tpth_s` in the file list. Click a box. VS Code opens that node (`code -g file:line`). Reload the VS Code window once so `.tpth_s` highlights as Toplethos, not as Rust or plain text.
 
 `code` must be on PATH (Command Palette → `Shell Command: Install 'code' command in PATH`).
 

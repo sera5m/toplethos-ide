@@ -1,20 +1,32 @@
 {
   "name": "toplethos",
   "displayName": "Toplethos",
-  "description": "Normal editor mode for .vul: highlighting and completions from the open file.",
-  "version": "0.2.0",
+  "description": "Normal editor mode for Toplethos source (.tpth_s). Not Rust.",
+  "version": "0.3.0",
   "publisher": "sera5m",
   "engines": { "vscode": "^1.85.0" },
   "categories": ["Programming Languages"],
   "main": "./extension.js",
   "activationEvents": ["onLanguage:toplethos"],
   "contributes": {
-    "languages": [{
-      "id": "toplethos",
-      "aliases": ["Toplethos", "vul"],
-      "extensions": [".vul", ".bvul"],
-      "configuration": "./language-configuration.json"
-    }],
+    "languages": [
+      {
+        "id": "toplethos",
+        "aliases": ["Toplethos", "tpth"],
+        "extensions": [".tpth_s", ".vul"],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "tpth-aot",
+        "aliases": ["Toplethos AOT", "tpth_aot"],
+        "extensions": [".tpth_aot", ".cvul"]
+      },
+      {
+        "id": "tpth-bc",
+        "aliases": ["Toplethos bytecode", "tpth_bc"],
+        "extensions": [".tpth_bc", ".bvul"]
+      }
+    ],
     "grammars": [{
       "language": "toplethos",
       "scopeName": "source.toplethos",

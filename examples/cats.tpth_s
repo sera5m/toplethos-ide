@@ -1,4 +1,4 @@
-// cats.vul — shared ASCII cat helpers (included by other programs)
+// cats.tpth_s — shared ASCII cat helpers (included by other programs)
 
 struct AsciiCat {
   i32 id;

@@ -1,0 +1,10 @@
+{
+  "files.associations": {
+    "*.tpth_s": "toplethos",
+    "*.vul": "toplethos",
+    "*.tpth_aot": "tpth-aot",
+    "*.cvul": "tpth-aot",
+    "*.tpth_bc": "tpth-bc",
+    "*.bvul": "tpth-bc"
+  }
+}

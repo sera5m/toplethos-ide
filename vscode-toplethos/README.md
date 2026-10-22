@@ -1,6 +1,6 @@
 # Toplethos VS Code extension
 
-`.vul` opens as a normal code file. Highlighting, brackets, indent, and completions. The graph window is separate; this is the text editor.
+`.tpth_s` opens as a normal Toplethos code file (`.vul` still does too). Highlighting, brackets, indent, and completions. `.tpth_aot` and `.tpth_bc` are images, not source, and are not Rust.
 
 No build step. No npm install.
 

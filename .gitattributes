@@ -1,0 +1,7 @@
+*.tpth_s text
+*.vul text
+*.tpth_aot binary linguist-generated
+*.cvul binary linguist-generated
+*.tpth_bc binary linguist-generated
+*.bvul binary linguist-generated
+*.rs linguist-vendored
