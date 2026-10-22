@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Toplethos IDE — file browse, export, line numbers, BASE VM."""
+"""Toplethos graph IDE. Nodes open in VS Code; this window only draws the graph."""
 from __future__ import annotations
 
 import os
@@ -18,17 +18,19 @@ try:
 except Exception:
     pass
 
+from graph_markers import parse, Node, Link
+
 if sys.platform.startswith("linux") and "GDK_BACKEND" not in os.environ:
     os.environ["GDK_BACKEND"] = "wayland"
 
 try:
     import gi
     gi.require_version("Gtk", "4.0")
-    from gi.repository import Gtk, GLib, Gio, Pango
+    from gi.repository import Gtk, GLib, Gio
 except Exception as e:
     sys.stderr.write(
         "Need GTK4 + PyGObject.\n"
-        "  sudo pacman -S python-gobject gtk4 python-pyserial python-matplotlib\n"
+        "  sudo pacman -S python-gobject gtk4\n"
         "%s\n" % e
     )
     sys.exit(1)
@@ -40,12 +42,9 @@ except Exception:
     serial = None
     list_ports = None
 
-DEFAULT = """print("hello from toplethos");
-print(1 + 2 * 3);
-print(sin(90));
-include "examples/basic.vul";
-"""
 VUL_EXTS = {".vul", ".bvul"}
+NODE_W = 168
+NODE_H = 76
 
 
 def ports():
@@ -57,13 +56,19 @@ def ports():
     return found or ["/dev/ttyACM0"]
 
 
+def find_code() -> str | None:
+    for name in ("code", "codium", "code-oss"):
+        hit = shutil.which(name)
+        if hit:
+            return hit
+    return None
+
+
 class App(Gtk.Application):
     def __init__(self):
         super().__init__(application_id="dev.oiria.ToplethosIde",
                          flags=Gio.ApplicationFlags.HANDLES_OPEN)
         self.win = None
-        self.editor = None
-        self.gutter = None
         self.log = None
         self.status = None
         self.target = None
@@ -71,14 +76,17 @@ class App(Gtk.Application):
         self.ser = None
         self.file_list = None
         self.dir_label = None
-        self.path = None
+        self.path: str | None = None
+        self.canvas = None
+        self.nodes: list[Node] = []
+        self.links: list[Link] = []
         self.workdir = HERE / "examples" if (HERE / "examples").is_dir() else Path.cwd()
 
     def do_activate(self):
         if self.win:
             self.win.present()
             return
-        self.win = Gtk.ApplicationWindow(application=self, title="Toplethos IDE")
+        self.win = Gtk.ApplicationWindow(application=self, title="Toplethos graph")
         self.win.set_default_size(1100, 720)
         root = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
 
@@ -86,22 +94,18 @@ class App(Gtk.Application):
         rail.set_margin_start(8)
         rail.set_margin_end(6)
         rail.set_margin_top(8)
-        rail.set_size_request(180, -1)
+        rail.set_size_request(200, -1)
         run = Gtk.Button(label="Run")
         run.add_css_class("suggested-action")
         run.connect("clicked", self._run)
-        exp = Gtk.Button(label="Export")
-        exp.connect("clicked", self._export)
-        sav = Gtk.Button(label="Save")
-        sav.connect("clicked", self._save)
-        op = Gtk.Button(label="Open")
-        op.connect("clicked", self._open)
+        reload_b = Gtk.Button(label="Reload graph")
+        reload_b.connect("clicked", lambda *_: self._load_path(self.path) if self.path else None)
         self.target = Gtk.DropDown.new_from_strings(["This PC", "Watch"])
         self.port = Gtk.DropDown.new_from_strings(ports())
         conn = Gtk.Button(label="Connect")
         conn.connect("clicked", self._connect)
-        self.status = Gtk.Label(label="This PC", xalign=0, wrap=True)
-        for w in (run, op, sav, exp, Gtk.Label(label="Target", xalign=0),
+        self.status = Gtk.Label(label="click a node to open it in VS Code", xalign=0, wrap=True)
+        for w in (run, reload_b, Gtk.Label(label="Target", xalign=0),
                   self.target, Gtk.Label(label="Port", xalign=0), self.port, conn, self.status):
             rail.append(w)
         self.dir_label = Gtk.Label(xalign=0, wrap=True)
@@ -120,53 +124,141 @@ class App(Gtk.Application):
 
         col = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         col.set_hexpand(True)
-        edit_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
-        self.gutter = Gtk.TextView(editable=False, monospace=True, can_focus=False)
-        self.gutter.add_css_class("dim-label")
-        self.gutter.set_size_request(44, -1)
-        self.editor = Gtk.TextView(monospace=True)
-        self.editor.set_wrap_mode(Gtk.WrapMode.NONE)
-        self.editor.set_left_margin(6)
-        self.editor.set_monospace(True)
-        self.editor.get_buffer().set_text(DEFAULT)
-        self.editor.get_buffer().connect("changed", lambda *_: self._renumber())
-        sc_g = Gtk.ScrolledWindow()
-        sc_g.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        sc_g.set_child(self.gutter)
-        sc_e = Gtk.ScrolledWindow()
-        sc_e.set_vexpand(True)
-        sc_e.set_hexpand(True)
-        sc_e.set_child(self.editor)
-        # share vertical adjustment so gutter scrolls with editor
-        def bind(*_):
-            sc_g.set_vadjustment(sc_e.get_vadjustment())
-        GLib.idle_add(bind)
-        edit_row.append(sc_g)
-        edit_row.append(sc_e)
-        col.append(edit_row)
+        self.canvas = Gtk.DrawingArea()
+        self.canvas.set_hexpand(True)
+        self.canvas.set_vexpand(True)
+        self.canvas.set_draw_func(self._draw)
+        click = Gtk.GestureClick()
+        click.connect("pressed", self._on_click)
+        self.canvas.add_controller(click)
+        sc = Gtk.ScrolledWindow()
+        sc.set_vexpand(True)
+        sc.set_hexpand(True)
+        sc.set_child(self.canvas)
+        col.append(sc)
         self.log = Gtk.TextView(editable=False, monospace=True)
         lg = Gtk.ScrolledWindow()
-        lg.set_min_content_height(150)
+        lg.set_min_content_height(140)
         lg.set_child(self.log)
         col.append(lg)
         root.append(col)
 
         self.win.set_child(root)
         self.win.present()
-        self._renumber()
         self._refresh_files()
-        self._say("Run: rsvm if on PATH, else toplethos_run (includes, arrays, native, @memory_hard).\n")
-
-    def _text(self):
-        b = self.editor.get_buffer()
-        return b.get_text(b.get_start_iter(), b.get_end_iter(), False)
+        code = find_code()
+        self._say("Graph reads //<<<node>>> markers. Click a box to open that range in VS Code.\n")
+        if code:
+            self._say("editor: %s\n" % code)
+        else:
+            self._say("VS Code CLI not on PATH. Install visual-studio-code-bin and run 'Shell Command: Install code command in PATH'.\n")
 
     def _say(self, s):
         self.log.get_buffer().insert(self.log.get_buffer().get_end_iter(), s)
 
-    def _renumber(self):
-        n = self._text().count("\n") + 1
-        self.gutter.get_buffer().set_text("\n".join("%4d" % i for i in range(1, n + 1)))
+    def _by_id(self, nid: int) -> Node | None:
+        for n in self.nodes:
+            if n.id == nid:
+                return n
+        return None
+
+    def _layout(self):
+        max_x, max_y = 800, 500
+        for i, n in enumerate(self.nodes):
+            if n.pos:
+                n.x, n.y = n.pos
+            else:
+                n.x = 28 + (i % 4) * 210
+                n.y = 28 + (i // 4) * 130
+            max_x = max(max_x, n.x + NODE_W + 40)
+            max_y = max(max_y, n.y + NODE_H + 40)
+        self.canvas.set_content_width(int(max_x))
+        self.canvas.set_content_height(int(max_y))
+        self.canvas.queue_draw()
+
+    def _port_xy(self, n: Node, side: str, idx: int) -> tuple[float, float]:
+        names = n.outputs if side == "out" else n.inputs
+        count = max(1, len(names))
+        idx = min(idx, count - 1)
+        step = NODE_H / (count + 1)
+        y = n.y + step * (idx + 1)
+        x = n.x + NODE_W if side == "out" else n.x
+        return x, y
+
+    def _draw(self, _area, cr, w, h):
+        cr.set_source_rgb(0.11, 0.12, 0.14)
+        cr.rectangle(0, 0, w, h)
+        cr.fill()
+        cr.set_source_rgb(0.55, 0.62, 0.72)
+        cr.set_line_width(1.5)
+        for lk in self.links:
+            a = self._by_id(lk.src)
+            b = self._by_id(lk.dst)
+            if not a or not b:
+                continue
+            x0, y0 = self._port_xy(a, lk.src_side, lk.src_idx)
+            x1, y1 = self._port_xy(b, lk.dst_side, lk.dst_idx)
+            cr.move_to(x0, y0)
+            cr.curve_to((x0 + x1) / 2, y0, (x0 + x1) / 2, y1, x1, y1)
+            cr.stroke()
+        cr.select_font_face("monospace")
+        for n in self.nodes:
+            cr.set_source_rgb(0.18, 0.20, 0.24)
+            cr.rectangle(n.x, n.y, NODE_W, NODE_H)
+            cr.fill()
+            cr.set_source_rgb(0.48, 0.65, 0.95)
+            cr.rectangle(n.x, n.y, NODE_W, NODE_H)
+            cr.stroke()
+            cr.set_source_rgb(0.93, 0.94, 0.96)
+            cr.set_font_size(13)
+            cr.move_to(n.x + 10, n.y + 20)
+            cr.show_text(n.name[:18])
+            cr.set_font_size(10)
+            cr.set_source_rgb(0.62, 0.66, 0.72)
+            cr.move_to(n.x + 10, n.y + 36)
+            cr.show_text("#%d" % n.id)
+            cr.set_source_rgb(0.45, 0.85, 0.55)
+            for i in range(len(n.inputs)):
+                x, y = self._port_xy(n, "in", i)
+                cr.arc(x, y, 4, 0, 6.3)
+                cr.fill()
+            cr.set_source_rgb(0.95, 0.62, 0.35)
+            for i in range(len(n.outputs)):
+                x, y = self._port_xy(n, "out", i)
+                cr.arc(x, y, 4, 0, 6.3)
+                cr.fill()
+
+    def _on_click(self, _gesture, _n, x, y):
+        for n in reversed(self.nodes):
+            if n.x <= x <= n.x + NODE_W and n.y <= y <= n.y + NODE_H:
+                self._open_vscode(n)
+                return
+
+    def _open_vscode(self, n: Node):
+        if not self.path:
+            self._say("no file\n")
+            return
+        code = find_code()
+        if not code:
+            self._say("code CLI missing. Install visual-studio-code-bin, then 'Shell Command: Install code command in PATH'.\n")
+            return
+        target = "%s:%d:1" % (self.path, n.start)
+        subprocess.Popen([code, "-g", target, self.path],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self._say("opened %s at line %d (%s)\n" % (Path(self.path).name, n.start, n.name))
+
+    def _load_path(self, path: str | None):
+        if not path:
+            return
+        text = Path(path).read_text(encoding="utf-8")
+        self.path = path
+        self.nodes, self.links = parse(text)
+        self._layout()
+        self.status.set_text("%d nodes, %d links" % (len(self.nodes), len(self.links)))
+        if not self.nodes:
+            self._say("%s has no //<<<node>>> markers\n" % path)
+        else:
+            self._say("loaded %s\n" % path)
 
     def _refresh_files(self):
         while True:
@@ -186,13 +278,12 @@ class App(Gtk.Application):
     def _on_file(self, _lb, row):
         child = row.get_child()
         path = getattr(child, "path", None)
-        if path:
-            self.editor.get_buffer().set_text(Path(path).read_text(encoding="utf-8"))
-            self.path = path
-            self._renumber()
+        if path and Path(path).suffix.lower() in VUL_EXTS:
+            self._load_path(path)
 
     def _pick_folder(self, *_):
         dlg = Gtk.FileDialog(title="Project folder")
+
         def done(d, res):
             try:
                 f = d.select_folder_finish(res)
@@ -202,45 +293,11 @@ class App(Gtk.Application):
                 pass
         dlg.select_folder(self.win, None, done)
 
-    def _open(self, *_):
-        dlg = Gtk.FileDialog(title="Open")
-        def done(d, res):
-            try:
-                f = d.open_finish(res)
-                p = Path(f.get_path())
-                self.workdir = p.parent
-                self.path = str(p)
-                self.editor.get_buffer().set_text(p.read_text(encoding="utf-8"))
-                self._refresh_files()
-                self._renumber()
-            except Exception:
-                pass
-        dlg.open(self.win, None, done)
-
-    def _save(self, *_):
-        if not self.path:
-            self._export()
-            return
-        Path(self.path).write_text(self._text(), encoding="utf-8")
-        self._say("saved %s\n" % self.path)
-
-    def _export(self, *_):
-        dlg = Gtk.FileDialog(title="Export .vul")
-        def done(d, res):
-            try:
-                f = d.save_finish(res)
-                p = Path(f.get_path())
-                if p.suffix == "":
-                    p = p.with_suffix(".vul")
-                p.write_text(self._text(), encoding="utf-8")
-                self.path = str(p)
-                self._say("exported %s\n" % p)
-            except Exception as e:
-                self._say("export: %s\n" % e)
-        dlg.save(self.win, None, done)
-
     def _run(self, *_):
-        src = self._text()
+        if not self.path:
+            self._say("open a .vul first\n")
+            return
+        src = Path(self.path).read_text(encoding="utf-8")
         if self.target.get_selected() == 1:
             self._watch(src)
             return
@@ -254,12 +311,12 @@ class App(Gtk.Application):
                 f.close()
                 pr = subprocess.run([rsvm, f.name], capture_output=True, text=True)
                 out = (pr.stdout or "") + (pr.stderr or "")
+                tag = "[rsvm]" if pr.returncode == 0 else "[rsvm failed]"
+                GLib.idle_add(self._say, tag + "\n" + out + "\n")
                 if pr.returncode == 0:
-                    GLib.idle_add(self._say, "[rsvm]\n" + out + "\n")
                     return
-                GLib.idle_add(self._say, "[rsvm failed]\n" + out + "\n")
             try:
-                from toplethos_run import run_source, RunError
+                from toplethos_run import run_source
                 out = run_source(src, self.path)
                 GLib.idle_add(self._say, "[run]\n" + out + "\n")
             except Exception as e:
