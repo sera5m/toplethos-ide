@@ -1,0 +1,12 @@
+//<<<node id=3453 name="foo" pos=40,40>>>
+fn foo in [a, b] out [c] {
+    // body stays normal source
+}
+//<<<end id=3453>>>
+
+//<<<node id=549 name="bar" pos=280,40>>>
+fn bar in [x] out [y] {
+}
+//<<<end id=549>>>
+
+//<<<link from=3453.out0 to=549.in0>>>
