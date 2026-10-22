@@ -1,8 +1,8 @@
 {
   "name": "toplethos",
   "displayName": "Toplethos",
-  "description": "Language support for .vul files and //<<<node>>> markers.",
-  "version": "0.1.0",
+  "description": "Normal editor mode for .vul: highlighting and completions from the open file.",
+  "version": "0.2.0",
   "publisher": "sera5m",
   "engines": { "vscode": "^1.85.0" },
   "categories": ["Programming Languages"],
@@ -19,6 +19,15 @@
       "language": "toplethos",
       "scopeName": "source.toplethos",
       "path": "./syntaxes/toplethos.tmLanguage.json"
-    }]
+    }],
+    "configurationDefaults": {
+      "[toplethos]": {
+        "editor.quickSuggestions": { "other": true, "comments": false, "strings": false },
+        "editor.suggest.snippetsPreventQuickSuggestions": false,
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.wordBasedSuggestions": "off"
+      }
+    }
   }
 }
