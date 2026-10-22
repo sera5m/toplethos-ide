@@ -1,0 +1,24 @@
+{
+  "name": "toplethos",
+  "displayName": "Toplethos",
+  "description": "Language support for .vul files and //<<<node>>> markers.",
+  "version": "0.1.0",
+  "publisher": "sera5m",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Programming Languages"],
+  "main": "./extension.js",
+  "activationEvents": ["onLanguage:toplethos"],
+  "contributes": {
+    "languages": [{
+      "id": "toplethos",
+      "aliases": ["Toplethos", "vul"],
+      "extensions": [".vul", ".bvul"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "toplethos",
+      "scopeName": "source.toplethos",
+      "path": "./syntaxes/toplethos.tmLanguage.json"
+    }]
+  }
+}
