@@ -15,13 +15,6 @@ def lang_dir() -> Path:
     env = os.environ.get("TOPLETHOS_LANG")
     if env:
         return Path(env)
-    for c in (
-        HERE / "third_party" / "toplethos-lang",
-        HERE.parent / "toplethos-lang",
-        Path.home() / "toplethos-lang",
-    ):
-        if (c / "toplethos_run.py").exists() or (c / "cpp_vm").exists():
-            return c
     return HERE / "third_party" / "toplethos-lang"
 
 
