@@ -41,7 +41,7 @@
       }
     },
     "keyword": {
-      "match": "\\b(fn|if|else|do|loop|leave|continue|return|include|namespace|object|enum|flow|match|select|defer|faildefer|onfail|onwarn|fatal|hold|lock|unlock|create|initialize|pause|resume|await|formatconvert|foreign|macro|when|row|true|false|HERE|THIS|main|min|max|clamp|abs|swap|rand|randf|push|pop|flush|in|out|as)\\b",
+      "match": "\\b(fn|if|else|do|loop|leave|continue|return|include|namespace|object|enum|flow|match|select|defer|faildefer|onfail|onwarn|onFinished|fork|finish|fatal|hold|lock|unlock|create|initialize|pause|resume|await|formatconvert|foreign|macro|when|row|true|false|HERE|THIS|main|min|max|clamp|abs|swap|rand|randf|push|pop|flush|in|out|as)\\b",
       "name": "keyword.control.toplethos"
     },
     "type": {

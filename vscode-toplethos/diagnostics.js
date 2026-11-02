@@ -18,7 +18,7 @@ const ATTRS = new Set([
   "cfan", "cmerge", "read", "write", "exclusive",
   "ignore_if_structure_matches", "divzero", "parallel", "gpuparallel",
   "npuparallel", "paged", "memory_hard", "geometry", "body", "scope", "time",
-  "functor", "method",
+  "blockinit", "blockpack", "blockpop", "blockpush", "topology",
 ]);
 
 const TYPE_WORD = ATOMS.join("|");
@@ -92,10 +92,16 @@ function diagnose(text) {
     const attr = /@([A-Za-z_][A-Za-z0-9_]*)/g;
     let am;
     while ((am = attr.exec(line))) {
-      if (am[1] === "NoFailTolerance") {
-        err(lineNo, am.index, am.index + am[0].length, "@NoFailTolerance is not a mode.");
-      } else if (!ATTRS.has(am[1])) {
-        err(lineNo, am.index, am.index + am[0].length, "unknown attribute @" + am[1] + ".");
+      const name = am[1];
+      const spanEnd = am.index + am[0].length;
+      if (name === "NoFailTolerance") {
+        err(lineNo, am.index, spanEnd, "@NoFailTolerance is not a mode.");
+      } else if (name === "ptr" || name === "ref" || name === "with") {
+        err(lineNo, am.index, spanEnd, "@" + name + " is not a mark.");
+      } else if (name === "global") {
+        err(lineNo, am.index, spanEnd, "there is no @global.");
+      } else if (!ATTRS.has(name)) {
+        err(lineNo, am.index, spanEnd, "unknown attribute @" + name + ".");
       }
     }
 

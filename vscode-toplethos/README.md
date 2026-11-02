@@ -1,6 +1,6 @@
 # Toplethos VS Code extension
 
-`.tpth_s` opens as Toplethos 1.0 source (`.vul` still does too). Highlighting, brackets, completions, and the 1.0 error checks. `.tpth_aot` and `.tpth_bc` are images, not source, and are not Rust.
+`.tpth_s` is Toplethos 1.0 source. Highlighting, brackets, completions, and the 1.0 error checks. `.tpth_aot` and `.tpth_bc` are images, not source, and are not Rust. `.vul`, `.cvul`, and `.bvul` are the pre-1.0 suffixes. This extension does not open them.
 
 No build step. No npm install.
 
@@ -27,7 +27,7 @@ The editor underlines what spec 1.0 already calls a compile error:
 - `name()` used as a call
 - `struct`, `int`, `long`, and `float`
 - a statement with no `;`
-- an unknown `@`, and `@NoFailTolerance`
+- an unknown `@`, `@NoFailTolerance`, and `@ptr` / `@ref` / `@with` / `@global` (those are not marks)
 - a second function with the same short name in one namespace
 - `i32[0]`
 - `!` or `&&` on an integer literal

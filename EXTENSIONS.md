@@ -4,11 +4,11 @@
 
 | suffix | was | what |
 |---|---|---|
-| `.tpth_s` | `.vul` | Toplethos source. Text. Language id `toplethos`. |
+| `.tpth_s` | `.vul` | Toplethos 1.0 source. Text. Language id `toplethos`. |
 | `.tpth_aot` | `.cvul` | Ahead-of-time image. Not source. Language id `tpth-aot`. |
 | `.tpth_bc` | `.bvul` | Bytecode image. Not source. Language id `tpth-bc`. |
 
-`.vul`, `.cvul`, and `.bvul` still map to the same language ids so old files open correctly. New files use the `tpth_` names.
+`.vul`, `.cvul`, and `.bvul` are pre-1.0. They are not registered. A 1.0 program is `.tpth_s`.
 
 Abbreviation: toplethos → `tpth`. `.tpth_s` is pronounced "toplethos source".
 

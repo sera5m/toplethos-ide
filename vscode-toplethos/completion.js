@@ -5,8 +5,8 @@ const { ATOMS, ATTRS } = require("./diagnostics");
 const SNIPPETS = [
   ["fn", "fn ${1:name} in[${2:i32 a}] out[${3:i32}] {\n\treturn ${4:0};\n}", "function"],
   ["main", "fn main in[] out[i32] {\n\treturn 0;\n}", "program entry"],
-  ["if", "if[${1:cond}] {\n\t${2}\n}", "if"],
-  ["ifelse", "if[${1:cond}] {\n\t${2}\n} else {\n\t${3}\n}", "if / else"],
+  ["if", "if ${1:cond} {\n\t${2}\n}", "if"],
+  ["ifelse", "if ${1:cond} {\n\t${2}\n} else {\n\t${3}\n}", "if / else"],
   ["do", "do n[${1:n}] {\n\t${2}\n}", "counted loop"],
   ["object", "object ${1:Name} {\n\ti32 ${2:field};\n}", "object"],
   ["enum", "enum ${1:Name} {\n\t${2:red},\n\t${3:green}\n}", "enum"],

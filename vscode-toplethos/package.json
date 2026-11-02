@@ -13,18 +13,18 @@
       {
         "id": "toplethos",
         "aliases": ["Toplethos", "tpth"],
-        "extensions": [".tpth_s", ".vul"],
+        "extensions": [".tpth_s"],
         "configuration": "./language-configuration.json"
       },
       {
         "id": "tpth-aot",
         "aliases": ["Toplethos AOT", "tpth_aot"],
-        "extensions": [".tpth_aot", ".cvul"]
+        "extensions": [".tpth_aot"]
       },
       {
         "id": "tpth-bc",
         "aliases": ["Toplethos bytecode", "tpth_bc"],
-        "extensions": [".tpth_bc", ".bvul"]
+        "extensions": [".tpth_bc"]
       }
     ],
     "grammars": [{
