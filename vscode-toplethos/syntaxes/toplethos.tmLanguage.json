@@ -18,8 +18,17 @@
       "name": "markup.inserted.toplethos"
     },
     "comment": {
-      "match": "//.*$",
-      "name": "comment.line.double-slash.toplethos"
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.toplethos",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.toplethos",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
     },
     "string": {
       "match": "\"(?:\\\\.|[^\"\\\\])*\"",
